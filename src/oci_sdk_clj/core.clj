@@ -1,24 +1,38 @@
 (ns oci-sdk-clj.core
-  (:require [oci-sdk-clj.signing :as signing]
-            [java-http-clj.core :as http]))
+  (:import [java.net URI]
+           [com.oracle.bmc.auth ConfigFileAuthenticationDetailsProvider]
+           [com.oracle.bmc.http.signing DefaultRequestSigner])
+  (:require [clj-http.client :as http]))
 
-(defn sample-request [compartment]
-  {:body nil
-   :headers {}
-   :method :get
-   :uri (str "https://iaas.us-ashburn-1.oraclecloud.com"
-             "/20160918/instances?compartmentId="
-             compartment)})
+(defn config-file-authentication-provider
+ "Create a configuration file authentication profile with an optional
+  profile"
+ ([] (config-file-authentication-provider "DEFAULT"))
+ ([profile] (new ConfigFileAuthenticationDetailsProvider profile)))
 
-(def auth-provider (signing/config-file-authentication-provider))
+(defn sign-request-params
+  [auth-provider uri-string method headers body]
+  (let [uri (URI/create uri-string)
+        signer (DefaultRequestSigner/createRequestSigner auth-provider)]
+    (.signRequest signer uri method headers body)))
 
-;; (defn sign-request-params [auth-provider uri-string method headers body]
+(defn sign-request
+  "Given an authentication provider and a Clojure map representing a clj-http HTTP request
+   return the signed request map"
+  [auth-provider request]
+  (let [{uri :url
+         method :request-method
+         headers :headers
+         body :body} request
+        signed-headers (signing/sign-request-params
+                         auth-provider uri (name method) headers body)]
+    (assoc request :headers
+      (into {} signed-headers))))
 
-(defn go [auth-provider request]
-  (let [{uri :uri method :method headers :headers body :body} request
-        signed-headers (signing/sign-request-params auth-provider uri (name method) headers body)]
-    (assoc request :headers signed-headers)))
-
-(defn req [compartment]
-  (let [request (go auth-provider (sample-request compartment))]
-    request))
+(defn request
+  "Given an authenticaton provider and a raw Clojure map representing a clj-http HTTP request
+   first sign the request and then dispatch it returning the payload as JSON"
+  [auth-provider request]
+  (let [signed-request (sign-request auth-provider request)]
+    (http/request
+      (merge signed-request {:as :json}))))

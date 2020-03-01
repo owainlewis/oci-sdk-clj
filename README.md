@@ -1,14 +1,35 @@
 # oci-sdk-clj
 
-A Clojure library designed to ... well, that part is up to you.
+A lightweight and Clojure friendly library for working with Oracle Cloud Infrastruture.
 
 ## Usage
 
-FIXME
+You can dispatch any clj-http compatible HTTP request.
+
+```clj
+(ns oci-sdk-clj.example
+  (:require [oci-sdk-clj.core :as oci]))
+
+(defn sample-request
+  [compartment]
+  {:request-method :get
+   :headers {}
+   :url
+	 (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances?compartmentId="
+	   compartment)})
+
+(defn example [compartment]
+  (let [auth (oci/config-file-authentication-provider)]
+	(->> (oci/request auth (sample-request compartment))
+		 :body
+		 (mapv :shape))))
+
+;; => ['VMStandard2.1']
+```
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Owain Lewis <owain@owainlewis.com>
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
