@@ -14,8 +14,9 @@ You can dispatch any clj-http compatible HTTP request.
   [compartment]
   {:request-method :get
    :headers {}
+   :query-params {"compartmentId" compartment}
    :url
-	 (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances?compartmentId="
+	 (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"
 	   compartment)})
 
 (defn example [compartment]
@@ -23,8 +24,6 @@ You can dispatch any clj-http compatible HTTP request.
 	(->> (oci/request auth (sample-request compartment))
 		 :body
 		 (mapv :shape))))
-
-;; => ['VMStandard2.1']
 ```
 
 ## License

@@ -5,8 +5,9 @@
   [compartment]
   {:request-method :get
    :headers {}
+   :query-params {"compartmentId" compartment}
    :url
-     (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances?compartmentId="
+     (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"
        compartment)})
 
 (defn example [compartment]

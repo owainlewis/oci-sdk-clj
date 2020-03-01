@@ -24,7 +24,7 @@
          method :request-method
          headers :headers
          body :body} request
-        signed-headers (signing/sign-request-params
+        signed-headers (sign-request-params
                          auth-provider uri (name method) headers body)]
     (assoc request :headers
       (into {} signed-headers))))
