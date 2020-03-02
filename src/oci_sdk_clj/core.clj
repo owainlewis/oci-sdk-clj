@@ -1,8 +1,11 @@
 (ns oci-sdk-clj.core
   (:import [java.net URI]
            [com.oracle.bmc.auth ConfigFileAuthenticationDetailsProvider]
+           [com.oracle.bmc OCID]
            [com.oracle.bmc.http.signing DefaultRequestSigner])
   (:require [clj-http.client :as http]))
+
+(defn valid-ocid? [ocid] (OCID/isValid ocid))
 
 (defn config-file-authentication-provider
  "Create a configuration file authentication profile with an optional
@@ -29,10 +32,24 @@
     (assoc request :headers
       (into {} signed-headers))))
 
+;; TODO we're not handling params properly (http/generate-query-string {:a 1 :b 2})
+
 (defn request
   "Given an authenticaton provider and a raw Clojure map representing a clj-http HTTP request
-   first sign the request and then dispatch it returning the payload as JSON"
-  [auth-provider request]
+   first sign the request and then dispatch it returning the payload as JSON
+   If no authentication provider is given, default to the config-file-authentication-provider
+   with a DEFAULT profile."
+  ([request]
+    (request (config-file-authentication-provider)))
+  ([auth-provider request]
   (let [signed-request (sign-request auth-provider request)]
     (http/request
-      (merge signed-request {:as :json}))))
+      (merge signed-request {:as :json})))))
+
+;; Fails because of incorrect params handling
+(defn- list-instances
+  [compartment]
+  {:request-method :get
+   :headers {}
+   :query-params {"compartmentId" compartment}
+   :url "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"})
