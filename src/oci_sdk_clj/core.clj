@@ -26,13 +26,18 @@
   (let [{uri :url
          method :request-method
          headers :headers
+         query :query-params
          body :body} request
+         qs (http/generate-query-string query)]
+  (let [uri-with-query (if (clojure.string/blank? qs)
+                         str
+                        (str uri "?" qs))
         signed-headers (sign-request-params
-                         auth-provider uri (name method) headers body)]
+                         auth-provider uri-with-query (name method) headers body)]
     (assoc request :headers
-      (into {} signed-headers))))
+      (into {} signed-headers)))))
 
-;; TODO we're not handling params properly (http/generate-query-string {:a 1 :b 2})
+;; TODO use an ordered map for query params!
 
 (defn request
   "Given an authenticaton provider and a raw Clojure map representing a clj-http HTTP request
