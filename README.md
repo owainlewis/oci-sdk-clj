@@ -26,6 +26,19 @@ You can dispatch any clj-http compatible HTTP request.
 		 (mapv :shape))))
 ```
 
+Get requests
+
+```clj
+(ns oci-sdk-clj.example
+  (require [oci-sdk-clj.core :as oci]))
+
+(def auth (oci/config-file-authentication-provider))
+
+(oci/get auth
+  "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances?compartmentId=X"
+  {:as :json})
+```
+
 ## License
 
 Copyright © 2020 Owain Lewis <owain@owainlewis.com>
