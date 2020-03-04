@@ -4,16 +4,23 @@
            [com.oracle.bmc OCID]
            [com.oracle.bmc.http.signing DefaultRequestSigner])
   (:require [clj-http.client :as http])
+  (:require [java-http-clj.core :as client])
   (:refer-clojure :exclude [get]))
 
 (defn valid-ocid? [ocid] (OCID/isValid ocid))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Authentication providers (todo move to separate place)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn config-file-authentication-provider
  "Create a configuration file authentication profile with an optional
   profile"
  ([] (config-file-authentication-provider "DEFAULT"))
  ([profile] (new ConfigFileAuthenticationDetailsProvider profile)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Request signatures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- sign-request-params
   [auth-provider uri-string method headers body]
   (let [uri (URI/create uri-string)
@@ -38,41 +45,59 @@
                          (name method)
                          (or headers {})
                          body)]
-    (assoc req :headers
-      (into {} signed-headers))))
+    (-> req (assoc :headers (into {} signed-headers)))))
 
-;; TODO use an ordered map for query params!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Requests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn request
   "Given an authenticaton provider and a raw Clojure map representing a clj-http HTTP request
    first sign the request and then dispatch it returning the payload as JSON"
   [auth-provider req]
-  (let [signed-request (sign-request auth-provider req)]
-    (http/request signed-request)))
+  (let [signed-request (sign-request auth-provider req)
+        modified (update-in signed-request [:headers] dissoc "content-length")]
+    (core/send-request signed-request)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helper functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn get
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (request auth-provider (merge req {:method :get :url url})))
+  ([auth-provider url req]
+    (request auth-provider (merge req {:method :get :url url})))
+  ([url req]
+    (get (config-file-authentication-provider) url req)))
 
 (defn post
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (request auth-provider (merge req {:method :post :url url})))
+  ([auth-provider url req]
+    (request auth-provider (merge req {:method :post :url url})))
+  ([url req]
+     (post (config-file-authentication-provider) url req)))
 
 (defn put
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (request auth-provider (merge req {:method :put :url url})))
+  ([auth-provider url req]
+    (request auth-provider (merge req {:method :put :url url})))
+  ([url req]
+    (put (config-file-authentication-provider) url req)))
 
 (defn delete
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
+  ([auth-provider url req]
   (request auth-provider (merge req {:method :delete :url url})))
+  ([url req]
+     (delete (config-file-authentication-provider) url req)))
 
-;; Fails because of incorrect params handling
-(defn- list-instances
-  [compartment]
-  {:request-method :get
-   :headers {}
-   :query-params {"compartmentId" compartment}
-   :url "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Examples
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn example-list-instances [compartment]
+  (get "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"
+    {:query-params {"compartmentId" compartment} :as :json}))
+
+(defn example-create-vcn [compartment]
+  (post "https://iaas.us-ashburn-1.oraclecloud.com/20160918/vcns"
+    {:compartmentId compartment
+     :displayName "Clojure API Virtual Cloud Network",
+     :cidrBlock "172.16.0.0/16"}))
