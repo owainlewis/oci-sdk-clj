@@ -1,17 +1,10 @@
 (ns oci-sdk-clj.example
-  (:require [oci-sdk-clj.core :as oci]))
+  (:require [oci-sdk-clj.auth :as auth]
+            [oci-sdk-clj.core :as oci]))
 
-(defn sample-request
-  [compartment]
-  {:request-method :get
-   :headers {}
-   :query-params {"compartmentId" compartment}
-   :url
-     (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"
-       compartment)})
+(def compartment (System/getenv "COMPARTMENT_OCID"))
 
-(defn example [compartment]
-  (let [auth (oci/config-file-authentication-provider)]
-    (->> (oci/request auth (sample-request compartment))
-         :body
-         (mapv :shape))))
+(defn list-users-request [compartment]
+  (let [provider (auth/config-file-authentication-details-provider "DEFAULT")
+        endpoint "https://identity.uk-london-1.oraclecloud.com/20160918/users/"]
+    (oci/get provider endpoint {:compartmentId compartment})))

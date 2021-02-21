@@ -1,6 +1,8 @@
 # oci-sdk-clj
 
-A lightweight and Clojure friendly library for working with Oracle Cloud Infrastruture.
+A lightweight and Clojure friendly library for working with Oracle Cloud Infrastructure (OCI).
+
+This library uses the OCI Java SDK for request signing.
 
 ## Usage
 
