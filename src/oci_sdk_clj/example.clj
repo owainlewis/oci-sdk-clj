@@ -13,13 +13,14 @@
 (defn list-shapes-request [compartment-ocid]
   (let [provider (auth/config-file-authentication-details-provider "DEFAULT")
         endpoint "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"]
-    (oci/get provider endpoint {:query-params {:compartmentId compartment-ocid}})))
+    (oci/get provider endpoint {:query-params {:compartmentId compartment-ocid}
+                                :oci-debug true})))
 
 (defn bare-metal-shapes
   "Return a list of all available Bare Metal compute shapes"
   [compartment-ocid]
   (let [all-shapes (oci/get provider "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"
-                     {:query-params {:compartmentId compartment-ocid}})]
+                     {:query-params {:compartmentId compartment-ocid} :oci-debug true})]
     (filter (fn [shape]
               (clojure.string/starts-with? shape "BM"))
-            (map :shape all-shapes)))))
+            (map :shape all-shapes))))

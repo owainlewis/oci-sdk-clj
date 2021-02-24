@@ -25,9 +25,13 @@
 
 (defn request
   "Given an authenticaton provider and a raw Clojure map representing an HTTP request
-   sign the request, dispatch, and return the payload as JSON"
+   sign the request, dispatch, and return the payload as JSON
+
+   If you need the full payload you can set an oci-debug flag {:oci-debug true}"
   [auth-provider req]
-  (-> (sign-request auth-provider req) http/request :body))
+  (if (true? (:oci-debug req))
+    (-> (sign-request auth-provider req) http/request)
+    (-> (sign-request auth-provider req) http/request :body)))
 
 (defn- params->query-string
   "Converts a map of query parameter options into a URL encoded query string that
@@ -55,20 +59,24 @@
 
 (defn get
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (define-method-fn auth-provider url :get req))
+  ([auth-provider url] (get auth-provider url nil))
+  ([auth-provider url req]
+    (define-method-fn auth-provider url :get req)))
 
 (defn put
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (define-method-fn auth-provider url :put req))
+  ([auth-provider url] (put auth-provider url nil))
+  ([auth-provider url req]
+   (define-method-fn auth-provider url :put req)))
 
 (defn post
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (define-method-fn auth-provider url :ost req))
+  ([auth-provider url] (post auth-provider url nil))
+  ([auth-provider url req]
+   (define-method-fn auth-provider url :post req)))
 
 (defn delete
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url req]
-  (define-method-fn auth-provider url :delete req))
+  ([auth-provider url] (delete auth-provider url nil))
+  ([auth-provider url req]
+   (define-method-fn auth-provider url :delete req)))
