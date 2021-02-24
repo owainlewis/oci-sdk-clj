@@ -18,13 +18,13 @@
       (println response)
       (is (= 200 (:status response))))))
 
-;; (defn list-users-request [auth]
-;;   (let [url (str
-;;              "https://identity.uk-london-1.oraclecloud.com/20160918/users?compartmentId="
-;;              "")]
-;;     (get auth url {})))
+(defn get-shapes-request [provider user-ocid]
+  (let [url (str "https://iaas.uk-london-1.oraclecloud.com/20160918/users/" user-ocid)]
+    (oci/get provider url nil)))
 
-;; (deftest valid-request-list-instances
-;;   (testing "Should list compute instances in a compartment"
-;;     (let [response (list-users-request auth)]
-;;       (println response))))
+(deftest valid-get-user-request-test
+  (testing "Should return user details"
+    (let [user (-> provider auth/auth->map :user-id)
+          response (get-user-request provider user)]
+      (println response)
+      (is (= 200 (:status response))))))

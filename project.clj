@@ -6,7 +6,7 @@
   :plugins [[lein-cljfmt "0.7.0"]]
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.oracle.oci.sdk/oci-java-sdk-common "1.32.1"]
+                 [org.slf4j/slf4j-simple "1.7.30"]
                  [cheshire "5.10.0"]
                  [clj-http "3.12.0"]]
-;;                 [com.owainlewis/java-http-clj "0.3.0"]]
   :repl-options {:init-ns oci-sdk-clj.core})

@@ -6,39 +6,37 @@ This library uses the OCI Java SDK for request signing.
 
 ## Usage
 
-You can dispatch any clj-http compatible HTTP request.
+The most basic usage allows you to dispatch API request manually. You can use any clojure-http compatable
+request.
 
 ```clj
 (ns oci-sdk-clj.example
-  (:require [oci-sdk-clj.core :as oci]))
+  (:require [oci-sdk-clj.auth :as auth]
+            [oci-sdk-clj.core :as oci]))
 
-(defn sample-request
-  [compartment]
-  {:request-method :get
-   :headers {}
-   :query-params {"compartmentId" compartment}
-   :url
-	 (str "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances"
-	   compartment)})
+(def provider (auth/config-file-authentication-details-provider "DEFAULT"))
 
-(defn example [compartment]
-  (let [auth (oci/config-file-authentication-provider)]
-	(->> (oci/request auth (sample-request compartment))
-		 :body
-		 (mapv :shape))))
-```
+(defn bare-metal-shapes
+  "Return a list of all available bare metal compute shapes"
+  [compartment-ocid]
+  (let [all-shapes (oci/get provider "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"
+                     {:query-params {:compartmentId compartment-ocid}})]
+    (filter (fn [shape]
+              (clojure.string/starts-with? shape "BM"))
+            (mapv :shape all-shapes)))))
 
-Get requests
-
-```clj
-(ns oci-sdk-clj.example
-  (require [oci-sdk-clj.core :as oci]))
-
-(def auth (oci/config-file-authentication-provider))
-
-(oci/get auth
-  "https://iaas.us-ashburn-1.oraclecloud.com/20160918/instances?compartmentId=X"
-  {:as :json})
+["BM.Standard2.52"
+ "BM.Standard.E3.128"
+ "BM.Standard.E2.64"
+ "BM.Standard1.36"
+ "BM.Standard2.52"
+ "BM.Standard.E3.128"
+ "BM.Standard.E2.64"
+ "BM.Standard1.36"
+ "BM.Standard2.52"
+ "BM.Standard.E3.128"
+ "BM.Standard.E2.64"
+ "BM.Standard1.36"]
 ```
 
 ## License

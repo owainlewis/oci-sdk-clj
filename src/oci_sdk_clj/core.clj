@@ -27,31 +27,48 @@
   "Given an authenticaton provider and a raw Clojure map representing an HTTP request
    sign the request, dispatch, and return the payload as JSON"
   [auth-provider req]
-  (-> (sign-request auth-provider req)
-      http/request))
+  (-> (sign-request auth-provider req) http/request :body))
 
-;; To remove the host header
-(comment (update-in [:headers] dissoc "host"))
-
-(defn params->query-string
+(defn- params->query-string
   "Converts a map of query parameter options into a URL encoded query string that
    can be added to a URI"
   [m]
   (clojure.string/join "&"
     (for [[k v] m]
       (str (name k) "="
-           (URLEncoder/encode v)))))
+           (URLEncoder/encode (or v ""))))))
 
-(defn build-request [method url query-params & other-params]
-  (let [url-with-query (if (or (nil? query-params)
+(defn- build-request [method url req]
+  (let [query-params (:query-params req)
+        url-with-query (if (or (nil? query-params)
                                (empty? query-params))
                          url
                          (str url "?" (params->query-string query-params)))]
     (merge {:method method :url url-with-query :as :json :throw-exceptions false}
-           (into {} other-params))))
+           (dissoc req :query-params))))
+
+(defn define-method-fn
+  "Like #'request, but sets the :method and :url as appropriate."
+  [auth-provider url method req]
+  (let [builder-req (build-request method url req)]
+    (request auth-provider builder-req)))
 
 (defn get
   "Like #'request, but sets the :method and :url as appropriate."
-  [auth-provider url query-params & other-params]
-  (let [req (build-request :get url query-params other-params)]
-    (request auth-provider req)))
+  [auth-provider url req]
+  (define-method-fn auth-provider url :get req))
+
+(defn put
+  "Like #'request, but sets the :method and :url as appropriate."
+  [auth-provider url req]
+  (define-method-fn auth-provider url :put req))
+
+(defn post
+  "Like #'request, but sets the :method and :url as appropriate."
+  [auth-provider url req]
+  (define-method-fn auth-provider url :ost req))
+
+(defn delete
+  "Like #'request, but sets the :method and :url as appropriate."
+  [auth-provider url req]
+  (define-method-fn auth-provider url :delete req))
