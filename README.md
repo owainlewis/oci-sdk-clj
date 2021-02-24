@@ -39,6 +39,11 @@ request.
  "BM.Standard1.36"]
 ```
 
+## Running tests
+
+```
+COMPARTMENT_ID="ocid..." lein test
+```
 ## License
 
 Copyright © 2020 Owain Lewis <owain@owainlewis.com>

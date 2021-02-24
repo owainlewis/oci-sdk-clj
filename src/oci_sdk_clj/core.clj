@@ -80,3 +80,27 @@
   ([auth-provider url] (delete auth-provider url nil))
   ([auth-provider url req]
    (define-method-fn auth-provider url :delete req)))
+
+;; Can we write a macro generate OCI CLI DSL (oci/compute :instance :list) without writing any actual code?
+
+(defn translate-resource [resource]
+  (case resource
+    :instance "https://iaas.uk-london-1.oraclecloud.com/20160918/"))
+
+(defn translate-verb-to-fn [verb]
+  (case verb
+    :get #'get
+    :list #'get
+    :create #'post
+    :delete #'delete
+    #'get))
+
+(defmacro ^:private defoci [method]
+    `(defn ~method
+       ~'[provider resource verb req]
+       (let [~'a (translate-resource ~'resource)
+             ~'endpoint (str ~'a "/" (name ~'verb))
+             ~'intern-fn (translate-verb-to-fn ~'verb)]
+         (apply ~'intern-fn [~'provider ~'endpoint ~'req]))))
+
+(defoci compute)
