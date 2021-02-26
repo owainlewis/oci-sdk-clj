@@ -1,4 +1,3 @@
-
 (ns oci-sdk-clj.core
   (:import [java.net URI URLEncoder])
   (:require [clj-http.client :as http]
@@ -95,8 +94,8 @@
     (format-endpoint service region "oc1" version))
   ([service region realm version]
    (let [domain (-> (filter
-                     (fn [realm]
-                       (= (:realm realm) "oc2"))
+                     (fn [m]
+                       (= (:realm m) realm))
                      realms) first :domain)]
      (str "https://" (name service) "." (name region) domain "/" version "/")))
 
