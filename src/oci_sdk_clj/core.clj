@@ -90,33 +90,15 @@
              {:realm "oc4" :domain "oraclegovcloud.uk"}
              {:realm "oc8" :domain "oraclecloud8.com"}])
 
-(def regions
-  [:ap-sydney-1
-   :ap-melbourne-1
-   :sa-saopaulo-1
-   :ca-montreal-1
-   :ca-toronto-1
-   :sa-santiago-1
-   :eu-frankfurt-1
-   :ap-hyderabad-1
-   :ap-mumbai-1
-   :ap-osaka-1
-   :ap-tokyo-1
-   :eu-amsterdam-1
-   :me-jeddah-1
-   :ap-seoul-1
-   :ap-chuncheon-1
-   :eu-zurich-1
-   :me-dubai-1
-   :uk-london-1
-   :uk-cardiff-1
-   :us-ashburn-1
-   :us-phoenix-1
-   :us-sanjose-1])
-
 (defn- format-endpoint
-  [service region version]
-  (str "https://" (name service) "." (name region) ".oraclecloud.com/" version "/"))
+  ([service region version]
+    (format-endpoint service region "oc1" version))
+  ([service region realm version]
+   (let [domain (-> (filter
+                     (fn [realm]
+                       (= (:realm realm) "oc2"))
+                     realms) first :domain)]
+     (str "https://" (name service) "." (name region) domain "/" version "/")))
 
 (defn regional-endpoint
   "Get the regional endpoint for a service name with the correct API version"
