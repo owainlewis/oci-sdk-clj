@@ -1,6 +1,9 @@
+
 (ns oci-sdk-clj.core
   (:import [java.net URI URLEncoder])
-  (:require [clj-http.client :as http])
+  (:require [clj-http.client :as http]
+            [oci-sdk-clj.auth :as auth])
+  (:import [com.oracle.bmc Realm Region])
   (:import [com.oracle.bmc.http.signing DefaultRequestSigner])
   (:refer-clojure :exclude [get]))
 
@@ -81,26 +84,54 @@
   ([auth-provider url req]
    (define-method-fn auth-provider url :delete req)))
 
-;; Can we write a macro generate OCI CLI DSL (oci/compute :instance :list) without writing any actual code?
+(def realms [{:realm "oc1" :domain "oraclecloud.com"}
+             {:realm "oc2" :domain "oraclegovcloud.com"}
+             {:realm "oc3" :domain "oraclegovcloud.com"}
+             {:realm "oc4" :domain "oraclegovcloud.uk"}
+             {:realm "oc8" :domain "oraclecloud8.com"}])
 
-(defn translate-resource [resource]
-  (case resource
-    :instance "https://iaas.uk-london-1.oraclecloud.com/20160918/"))
+(def regions
+[:ap-sydney-1
+ :ap-melbourne-1
+ :sa-saopaulo-1
+ :ca-montreal-1
+ :ca-toronto-1
+ :sa-santiago-1
+ :eu-frankfurt-1
+ :ap-hyderabad-1
+ :ap-mumbai-1
+ :ap-osaka-1
+ :ap-tokyo-1
+ :eu-amsterdam-1
+ :me-jeddah-1
+ :ap-seoul-1
+ :ap-chuncheon-1
+ :eu-zurich-1
+ :me-dubai-1
+ :uk-london-1
+ :uk-cardiff-1
+ :us-ashburn-1
+ :us-phoenix-1
+ :us-sanjose-1])
+
+(defn- format-endpoint
+  [service region version]
+  (str "https://" (name service) "." (name region) ".oraclecloud.com/" version "/"))
+
+(defn regional-endpoint
+  "Get the regional endpoint for a service name with the correct API version"
+  [service region]
+  (case (keyword service)
+    :compute (format-endpoint "iaas" region "20160918")
+    nil))
 
 (defn translate-verb-to-fn [verb]
-  (case verb
-    :get #'get
-    :list #'get
-    :create #'post
-    :delete #'delete
-    #'get))
+  (case verb :get #'get :list #'get :create #'post :update #'put :delete #'delete))
 
-(defmacro ^:private defoci [method]
-    `(defn ~method
-       ~'[provider resource verb req]
-       (let [~'a (translate-resource ~'resource)
-             ~'endpoint (str ~'a "/" (name ~'verb))
-             ~'intern-fn (translate-verb-to-fn ~'verb)]
-         (apply ~'intern-fn [~'provider ~'endpoint ~'req]))))
-
-(defoci compute)
+(defn run
+  [provider service resource verb req]
+  (let [region (-> provider auth/auth->map :region)
+        request-fn (translate-verb-to-fn verb)
+        endpoint (regional-endpoint service region)
+        url (str endpoint (name resource))]
+  (apply request-fn [provider url req])))

@@ -16,6 +16,19 @@ request.
 
 (def provider (auth/config-file-authentication-details-provider "DEFAULT"))
 
+;; Get a  list of available OCI compute shapes
+(oci/run provider :compute :shapes :list {:query-params {:compartmentId compartment-ocid}}))
+```
+
+You can also construct HTTP request manually. For example:
+
+```clj
+(ns oci-sdk-clj.example
+  (:require [oci-sdk-clj.auth :as auth]
+            [oci-sdk-clj.core :as oci]))
+
+(def provider (auth/config-file-authentication-details-provider "DEFAULT"))
+
 (defn bare-metal-shapes
   "Return a list of all available bare metal compute shapes"
   [compartment-ocid]
@@ -38,6 +51,8 @@ request.
  "BM.Standard.E2.64"
  "BM.Standard1.36"]
 ```
+
+
 
 ## Running tests
 

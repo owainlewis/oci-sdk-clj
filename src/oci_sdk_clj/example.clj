@@ -24,3 +24,7 @@
     (filter (fn [shape]
               (clojure.string/starts-with? shape "BM"))
             (map :shape all-shapes))))
+
+(defn dsl-example
+  [provider compartment-ocid]
+  (oci/run provider :compute :shapes :list {:query-params {:compartmentId compartment-ocid}}))
