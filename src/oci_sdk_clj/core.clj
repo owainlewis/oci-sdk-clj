@@ -41,9 +41,9 @@
    can be added to a URI"
   [m]
   (clojure.string/join "&"
-    (for [[k v] m]
-      (str (name k) "="
-           (URLEncoder/encode (or v ""))))))
+                       (for [[k v] m]
+                         (str (name k) "="
+                              (URLEncoder/encode (or v ""))))))
 
 (defn- build-request [method url req]
   (let [query-params (:query-params req)
@@ -64,7 +64,7 @@
   "Like #'request, but sets the :method and :url as appropriate."
   ([auth-provider url] (get auth-provider url nil))
   ([auth-provider url req]
-    (define-method-fn auth-provider url :get req)))
+   (define-method-fn auth-provider url :get req)))
 
 (defn put
   "Like #'request, but sets the :method and :url as appropriate."
@@ -91,28 +91,28 @@
              {:realm "oc8" :domain "oraclecloud8.com"}])
 
 (def regions
-[:ap-sydney-1
- :ap-melbourne-1
- :sa-saopaulo-1
- :ca-montreal-1
- :ca-toronto-1
- :sa-santiago-1
- :eu-frankfurt-1
- :ap-hyderabad-1
- :ap-mumbai-1
- :ap-osaka-1
- :ap-tokyo-1
- :eu-amsterdam-1
- :me-jeddah-1
- :ap-seoul-1
- :ap-chuncheon-1
- :eu-zurich-1
- :me-dubai-1
- :uk-london-1
- :uk-cardiff-1
- :us-ashburn-1
- :us-phoenix-1
- :us-sanjose-1])
+  [:ap-sydney-1
+   :ap-melbourne-1
+   :sa-saopaulo-1
+   :ca-montreal-1
+   :ca-toronto-1
+   :sa-santiago-1
+   :eu-frankfurt-1
+   :ap-hyderabad-1
+   :ap-mumbai-1
+   :ap-osaka-1
+   :ap-tokyo-1
+   :eu-amsterdam-1
+   :me-jeddah-1
+   :ap-seoul-1
+   :ap-chuncheon-1
+   :eu-zurich-1
+   :me-dubai-1
+   :uk-london-1
+   :uk-cardiff-1
+   :us-ashburn-1
+   :us-phoenix-1
+   :us-sanjose-1])
 
 (defn- format-endpoint
   [service region version]
@@ -134,4 +134,4 @@
         request-fn (translate-verb-to-fn verb)
         endpoint (regional-endpoint service region)
         url (str endpoint (name resource))]
-  (apply request-fn [provider url req])))
+    (apply request-fn [provider url req])))

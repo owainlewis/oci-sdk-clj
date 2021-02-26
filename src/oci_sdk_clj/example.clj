@@ -20,7 +20,7 @@
   "Return a list of all available Bare Metal compute shapes"
   [compartment-ocid]
   (let [all-shapes (oci/get provider "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"
-                     {:query-params {:compartmentId compartment-ocid} :oci-debug true})]
+                            {:query-params {:compartmentId compartment-ocid} :oci-debug true})]
     (filter (fn [shape]
               (clojure.string/starts-with? shape "BM"))
             (map :shape all-shapes))))
