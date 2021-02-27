@@ -89,25 +89,106 @@
              {:realm "oc4" :domain "oraclegovcloud.uk"}
              {:realm "oc8" :domain "oraclecloud8.com"}])
 
+(def services [{:name "analytics" :description "Analytics" :endpoint "" :version ""}
+               {:name "announce" :description "Announcements Service" :endpoint "" :version ""}
+               {:name "api-gateway" :description "API Gateway" :endpoint "" :version ""}
+               {:name "application-migration" :description "Application Migration" :endpoint "" :version ""}
+               {:name "audit" :description "Audit" :endpoint "" :version ""}
+               {:name "autoscaling" :description "Autoscaling" :endpoint "" :version ""}
+               {:name "bds" :description "Big Data Service" :endpoint "" :version ""}
+               {:name "blockchain" :description "Blockchain Platform Control Plane" :endpoint "" :version ""}
+               {:name "budgets" :description "Budgets" :endpoint "" :version ""}
+               {:name "bv" :description "Block Volume Service" :endpoint "" :version ""}
+               {:name "ce" :description "Container Engine for Kubernetes" :endpoint "" :version ""}
+               {:name "cloud-guard" :description "Cloud Guard" :endpoint "" :version ""}
+               {:name "compute" :description "Compute Service" :endpoint "iaas" :version "20160918"}
+               {:name "compute-management" :description "Compute Management Service" :endpoint "" :version ""}
+               {:name "data-catalog" :description "Data Catalog"}
+               {:name "data-flow" :description "Data Flow"}
+               {:name "data-integration" :description "Data Integration"}
+               {:name "data-safe" :description "Data Safe"}
+               {:name "data-science" :description "Data Science"}
+               {:name "database-management" :description "Database Management"}
+               {:name "db" :description "Database Service"}
+               {:name  "dns" :description "DNS"}
+               {:name "dts" :description "Data Transfer Service"}
+               {:name "email" :description "Email Delivery"}
+               {:name "events" :description "Events"}
+               {:name "fn" :description "Functions Service"}
+               {:name "fs" :description "File Storage"}
+               {:name "health-checks" :description "Health Checks"}
+               {:name "iam" :description "Identity and Access Management Service"}
+               {:name "instance-agent" :description "Compute Instance Agent Service"}
+               {:name "integration" :description "Oracle Integration"}
+               {:name "kms" :description "Key Management"}
+               {:name "lb" :description "Load Balancing"}
+               {:name "limits" :description "Service limits"}
+               {:name "log-analytics" :description "LogAnalytics"}
+               {:name "logging" :description "Logging Management"}
+               {:name "logging-ingestion" :description "Logging Ingestion"}
+               {:name "logging-search" :description "Logging Search"}
+               {:name "management-agent" :description "Management Agent"}])
+  ;; "management-dashboard   ManagementDashboard
+  ;; "marketplace            Marketplace Service
+  ;; "monitoring             Monitoring
+  ;; "mysql                  MySQL Database Service
+  ;; "network                Networking Service
+  ;; "nosql                  NoSQL Database
+  ;; "oce                    Oracle Content and Experience
+  ;; "ocvs                   Oracle Cloud VMware Solution
+  ;; "oda                    Digital Assistant Service Instance
+  ;; "ons                    Notifications
+  ;; "opsi                   Operations Insights
+  ;; "optimizer              Cloud Advisor
+  ;; "organizations          TenantManager
+  ;; "os                     Object Storage Service
+  ;; "os-management          OS Management
+  ;; "raw-request            Makes a raw request against an OCI service
+  ;; "resource-manager       Resource Manager
+  ;; "rover                  RoverCloudService
+  ;; "sch                    Service Connector Hub
+  ;; "search                 Search Service
+  ;; "secrets                Secrets
+  ;; "session                Session commands for CLI
+  ;; "setup                  Setup commands for CLI
+  ;; "streaming              Streaming Service
+  ;; "support                Support Management
+  ;; "usage-api"              "Usage"
+  ;; "vault" "Secrets Management"
+  ;; "waas" "Web Application Acceleration and Security Services"
+;; "work-requests" "Work Requests"
+
+(defn find-map [ms k v]
+  (into {}
+        (filter
+         (fn [m]
+           (= (clojure.core/get m k) v)) ms)))
+
 (defn- format-endpoint
-  ([service region version]
-    (format-endpoint service region "oc1" version))
-  ([service region realm version]
+  ([endpoint region version]
+   (format-endpoint endpoint region "oc1" version))
+  ([endpoint region realm version]
    (let [domain (-> (filter
                      (fn [m]
                        (= (:realm m) realm))
                      realms) first :domain)]
-     (str "https://" (name service) "." (name region) domain "/" version "/")))
+     (str "https://" (name endpoint) "." (name region) domain "/" version "/"))))
 
 (defn regional-endpoint
-  "Get the regional endpoint for a service name with the correct API version"
+  "Get the regional endpoint for a service name with the correct API version
+   Example -> (regional-endpoint :compute :uk-london-1)"
   [service region]
-  (case (keyword service)
-    :compute (format-endpoint "iaas" region "20160918")
-    nil))
+  (let [service (find-map services :name (name service))
+        {endpoint :endpoint version :version} service]
+    (format-endpoint endpoint region version)))
 
 (defn translate-verb-to-fn [verb]
-  (case verb :get #'get :list #'get :create #'post :update #'put :delete #'delete))
+  (case verb
+    :get #'get
+    :list #'get
+    :create #'post
+    :update #'put
+    :delete #'delete))
 
 (defn run
   [provider service resource verb req]
