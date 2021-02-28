@@ -23,7 +23,6 @@
                                             (or headers {})
                                             body)
         modified (dissoc (into {} signed-headers) "content-length")]
-    (println modified)
     (-> req
         (assoc :headers modified))))
 
