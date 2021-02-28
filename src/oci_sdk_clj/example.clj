@@ -32,9 +32,11 @@
   [provider compartment-ocid]
   (oci/run provider :compute :shapes :list {:query-params {:compartmentId compartment-ocid}}))
 
-(defn create-instance-example [ad compartment]
-  (let [launch-instance-details {:availabilityDomain ad
+(defn create-instance-example
+  "Create a compute instance"
+  [availability-domain compartment subnet]
+  (let [launch-instance-details {:availabilityDomain availability-domain
                                  :compartmentId compartment
-                                 :createVnicDetails {:subnetId "default"}
-                                 :shape "VM.Standard2.1"}]
+                                 :subnetId subnet
+                                 :shape "VM.Standard.E3.Flex"}]
     (oci/run provider :compute :instances :create {:body launch-instance-details})))

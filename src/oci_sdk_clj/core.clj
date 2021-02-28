@@ -32,10 +32,34 @@
 
    If you need the full payload you can set an oci-debug flag {:oci-debug true}"
   [auth-provider req]
-  (println (str "Making request to " req))
   (if (true? (:oci-debug req))
     (-> (sign-request auth-provider req) http/request)
     (-> (sign-request auth-provider req) http/request :body)))
+
+(defn json-body-transformer
+  "Given an HTTP request, transform the body from a Clojure map to a JSON string"
+  [req]
+  (let [body (:body req)]
+    (if (some? body)
+      (assoc req :body (json/generate-string body))
+      req)))
+
+
+(defn- build-request
+  "Construct an HTTP request for dispatching and signing"
+  [method url req]
+  (let [req' (json-body-transformer req)
+        query-params (:query-params req)
+        url-with-query (if (or (nil? query-params)
+                               (empty? query-params))
+                         url
+                         (str url "?" (params->query-string query-params)))]
+    (merge {:method method
+            :url url-with-query
+            :as :json
+            :headers {"content-type" ["application/json"]}
+            :throw-exceptions false}
+           (dissoc req' :query-params))))
 
 (defn- params->query-string
   "Converts a map of query parameter options into a URL encoded query string that
@@ -174,7 +198,8 @@
   [service region]
   (let [service (find-map services :name (name service))
         {endpoint :endpoint version :version} service]
-    (format-endpoint endpoint region version)))
+    (when (some? service)
+      (format-endpoint endpoint region version))))
 
 (defn translate-verb-to-fn [verb]
   (case verb
