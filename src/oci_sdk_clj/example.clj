@@ -8,19 +8,22 @@
 
 (defn list-users-request [compartment-ocid]
   (let [endpoint "https://identity.uk-london-1.oraclecloud.com/20160918/users/"]
-    (oci/get provider endpoint {:query-params {:compartmentId compartment-ocid}})))
+    (oci/get provider endpoint
+             {:query-params {:compartmentId compartment-ocid}})))
 
 (defn list-shapes-request [compartment-ocid]
   (let [provider (auth/config-file-authentication-details-provider "DEFAULT")
         endpoint "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"]
-    (oci/get provider endpoint {:query-params {:compartmentId compartment-ocid}
-                                :oci-debug true})))
+    (oci/get provider endpoint
+             {:query-params {:compartmentId compartment-ocid}
+                             :oci-debug true})))
 
 (defn bare-metal-shapes
   "Return a list of all available Bare Metal compute shapes"
   [compartment-ocid]
   (let [all-shapes (oci/get provider "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"
-                            {:query-params {:compartmentId compartment-ocid} :oci-debug true})]
+                            {:query-params {:compartmentId compartment-ocid}
+                             :oci-debug false})]
     (filter (fn [shape]
               (clojure.string/starts-with? shape "BM"))
             (map :shape all-shapes))))
@@ -28,3 +31,10 @@
 (defn dsl-example
   [provider compartment-ocid]
   (oci/run provider :compute :shapes :list {:query-params {:compartmentId compartment-ocid}}))
+
+(defn create-instance-example [ad compartment]
+  (let [launch-instance-details {:availabilityDomain ad
+                                 :compartmentId compartment
+                                 :createVnicDetails {:subnetId "default"}
+                                 :shape "VM.Standard2.1"}]
+    (oci/run provider :compute :instances :create {:body launch-instance-details})))

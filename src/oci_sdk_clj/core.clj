@@ -1,6 +1,7 @@
 (ns oci-sdk-clj.core
   (:import [java.net URI URLEncoder])
   (:require [clj-http.client :as http]
+            [cheshire.core :as json]
             [oci-sdk-clj.auth :as auth])
   (:import [com.oracle.bmc Realm Region])
   (:import [com.oracle.bmc.http.signing DefaultRequestSigner])
@@ -21,7 +22,8 @@
                                             (name method)
                                             (or headers {})
                                             body)
-        modified (into {} signed-headers)]
+        modified (dissoc (into {} signed-headers) "content-length")]
+    (println modified)
     (-> req
         (assoc :headers modified))))
 
@@ -31,6 +33,7 @@
 
    If you need the full payload you can set an oci-debug flag {:oci-debug true}"
   [auth-provider req]
+  (println (str "Making request to " req))
   (if (true? (:oci-debug req))
     (-> (sign-request auth-provider req) http/request)
     (-> (sign-request auth-provider req) http/request :body)))
@@ -44,14 +47,6 @@
                          (str (name k) "="
                               (URLEncoder/encode (or v ""))))))
 
-(defn- build-request [method url req]
-  (let [query-params (:query-params req)
-        url-with-query (if (or (nil? query-params)
-                               (empty? query-params))
-                         url
-                         (str url "?" (params->query-string query-params)))]
-    (merge {:method method :url url-with-query :as :json :throw-exceptions false}
-           (dissoc req :query-params))))
 
 (defn define-method-fn
   "Like #'request, but sets the :method and :url as appropriate."
@@ -172,7 +167,7 @@
                      (fn [m]
                        (= (:realm m) realm))
                      realms) first :domain)]
-     (str "https://" (name endpoint) "." (name region) domain "/" version "/"))))
+     (str "https://" (name endpoint) "." (name region) "." domain "/" version "/"))))
 
 (defn regional-endpoint
   "Get the regional endpoint for a service name with the correct API version
