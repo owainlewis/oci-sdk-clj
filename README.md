@@ -4,6 +4,8 @@ A lightweight and Clojure friendly library for working with Oracle Cloud Infrast
 
 This library uses the OCI Java SDK for request signing and can wrap current OCI Java SDK clients.
 
+By default, the dependency set is intentionally lean. Add the OCI Java SDK service modules you need, or use the full shaded SDK when you want every client available.
+
 ## Usage
 
 The most basic usage allows you to dispatch API request manually. You can use any clojure-http compatable
@@ -35,6 +37,22 @@ For new code, prefer the Java SDK wrapper path. It uses typed OCI Java SDK clien
                                   {:compartment-id compartment-ocid})]
     (oci-java/call identity :list-users request)))
 ```
+
+For the example above, add the Identity service module and an HTTP client:
+
+```clj
+{:deps {com.owainlewis/oci-sdk-clj {:mvn/version "0.1.0"}
+        com.oracle.oci.sdk/oci-java-sdk-common-httpclient-jersey {:mvn/version "3.91.0"}
+        com.oracle.oci.sdk/oci-java-sdk-identity {:mvn/version "3.91.0"}}}
+```
+
+For full Java SDK client availability, add:
+
+```clj
+{:deps {com.oracle.oci.sdk/oci-java-sdk-shaded-full {:mvn/version "3.91.0"}}}
+```
+
+See `docs/modules.md` for the module strategy.
 
 You can also construct HTTP request manually. For example:
 
@@ -73,9 +91,10 @@ You can also construct HTTP request manually. For example:
 ## Running tests
 
 ```
-lein test
-lein cljfmt check
-lein run -m clojure.main scripts/oci_client_inventory.clj
+clojure -M:test
+clojure -M:fmt check
+clojure -M:oci/full:inventory
+clojure -T:build jar
 ```
 
 The default tests do not require OCI credentials. Live OCI calls require a configured OCI profile and tenancy permissions.

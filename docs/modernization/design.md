@@ -11,7 +11,7 @@ This changes if: Oracle publishes a current, complete, public OpenAPI or Swagger
 
 ## Context and Scope
 
-The current project is a small Leiningen library. It depends on `com.oracle.oci.sdk/oci-java-sdk-common` `1.32.1`, signs raw `clj-http` requests, and contains a partial hard-coded service table. It cannot prove full OCI coverage.
+Before modernization, the project was a small Leiningen library. It depended on `com.oracle.oci.sdk/oci-java-sdk-common` `1.32.1`, signed raw `clj-http` requests, and contained a partial hard-coded service table. It could not prove full OCI coverage.
 
 Oracle's Java SDK docs describe the SDK as the tool for managing OCI resources, list many supported services, and link to GitHub and Maven downloads. The current Java SDK API reference is version `3.91.0`. Oracle also documents Java SDK 3.x changes, including the explicit HTTP client choice for unshaded modular use.
 
