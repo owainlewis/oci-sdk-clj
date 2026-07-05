@@ -3,9 +3,17 @@
   (:require [clj-http.client :as http]
             [cheshire.core :as json]
             [oci-sdk-clj.auth :as auth])
-  (:import [com.oracle.bmc Realm Region])
   (:import [com.oracle.bmc.http.signing DefaultRequestSigner])
   (:refer-clojure :exclude [get]))
+
+(defn- params->query-string
+  "Converts a map of query parameter options into a URL encoded query string that
+   can be added to a URI"
+  [m]
+  (clojure.string/join "&"
+                       (for [[k v] m]
+                         (str (name k) "="
+                              (URLEncoder/encode (str (or v "")) "UTF-8")))))
 
 (defn- sign-request-params
   [auth-provider uri-string method headers body]
@@ -47,7 +55,7 @@
 (defn- build-request
   "Construct an HTTP request for dispatching and signing"
   [method url req]
-  (let [req' (json-body-transformer req)
+  (let [req' (json-body-transformer (or req {}))
         query-params (:query-params req)
         url-with-query (if (or (nil? query-params)
                                (empty? query-params))
@@ -59,15 +67,6 @@
             :headers {"content-type" ["application/json"]}
             :throw-exceptions false}
            (dissoc req' :query-params))))
-
-(defn- params->query-string
-  "Converts a map of query parameter options into a URL encoded query string that
-   can be added to a URI"
-  [m]
-  (clojure.string/join "&"
-                       (for [[k v] m]
-                         (str (name k) "="
-                              (URLEncoder/encode (or v ""))))))
 
 (defn define-method-fn
   "Like #'request, but sets the :method and :url as appropriate."
@@ -205,7 +204,8 @@
     :list #'get
     :create #'post
     :update #'put
-    :delete #'delete))
+    :delete #'delete
+    (throw (ex-info "Unsupported OCI raw request verb" {:verb verb}))))
 
 (defn run
   [provider service resource verb req]
