@@ -2,7 +2,7 @@
 
 A lightweight and Clojure friendly library for working with Oracle Cloud Infrastructure (OCI).
 
-This library uses the OCI Java SDK for request signing.
+This library uses the OCI Java SDK for request signing and can wrap current OCI Java SDK clients.
 
 ## Usage
 
@@ -18,6 +18,22 @@ request.
 
 ;; Get a  list of available OCI compute shapes
 (oci/run provider :compute :shapes :list {:query-params {:compartmentId compartment-ocid}}))
+```
+
+For new code, prefer the Java SDK wrapper path. It uses typed OCI Java SDK clients and requests while keeping the call site small:
+
+```clj
+(ns oci-sdk-clj.example
+  (:require [oci-sdk-clj.auth :as auth]
+            [oci-sdk-clj.java :as oci-java]))
+
+(def provider (auth/config-file-authentication-details-provider "DEFAULT"))
+(def identity (oci-java/client provider :identity {:region :uk-london-1}))
+
+(defn list-users [compartment-ocid]
+  (let [request (oci-java/request "com.oracle.bmc.identity.requests.ListUsersRequest"
+                                  {:compartment-id compartment-ocid})]
+    (oci-java/call identity :list-users request)))
 ```
 
 You can also construct HTTP request manually. For example:
@@ -57,8 +73,12 @@ You can also construct HTTP request manually. For example:
 ## Running tests
 
 ```
-COMPARTMENT_ID="ocid..." lein test
+lein test
+lein cljfmt check
+lein run -m clojure.main scripts/oci_client_inventory.clj
 ```
+
+The default tests do not require OCI credentials. Live OCI calls require a configured OCI profile and tenancy permissions.
 ## License
 
 Copyright © 2020 Owain Lewis <owain@owainlewis.com>

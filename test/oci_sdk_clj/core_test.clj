@@ -1,29 +1,24 @@
 (ns oci-sdk-clj.core-test
   (:require [clojure.test :refer :all]
-            [oci-sdk-clj.auth :as auth]
+            [clojure.string :as str]
             [oci-sdk-clj.core :as oci]))
 
-(def provider (auth/config-file-authentication-details-provider "DEFAULT"))
+(deftest regional-endpoint-test
+  (testing "builds the known compute endpoint from the existing raw request table"
+    (is (= "https://iaas.uk-london-1.oraclecloud.com/20160918/"
+           (oci/regional-endpoint :compute :uk-london-1)))))
 
-(def compartment-ocid (System/getenv "COMPARTMENT_OCID"))
+(deftest unsupported-raw-verb-test
+  (testing "fails clearly for unsupported raw request verbs"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                          #"Unsupported OCI raw request verb"
+                          (oci/translate-verb-to-fn :patch)))))
 
-(defn get-user-request [provider user-ocid]
-  (let [url (str "https://identity.uk-london-1.oraclecloud.com/20160918/users/" user-ocid)]
-    (oci/get provider url {:oci-debug true})))
-
-(deftest valid-get-user-request-test
-  (testing "Should return user details"
-    (let [user (-> provider auth/auth->map :user-id)
-          response (get-user-request provider user)]
-      (is (= 200 (:status response))))))
-
-(defn get-shapes-request [provider compartment-ocid]
-  (let [url (str "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/")]
-    (oci/get provider url
-             {:oci-debug true
-              :query-params {:compartmentId compartment-ocid}})))
-
-(deftest valid-get-shapes-request-test
-  (testing "Should return a list of compute shapes"
-    (let [response (get-shapes-request provider compartment-ocid)]
-      (is (= 200 (:status response))))))
+(deftest raw-query-params-are-url-encoded-test
+  (testing "raw request helpers encode query parameters before signing"
+    (let [captured (atom nil)]
+      (with-redefs [oci/request (fn [_ req] (reset! captured req))]
+        (oci/get :provider
+                 "https://iaas.uk-london-1.oraclecloud.com/20160918/shapes/"
+                 {:query-params {:compartmentId "ocid value"}}))
+      (is (str/includes? (:url @captured) "compartmentId=ocid+value")))))
