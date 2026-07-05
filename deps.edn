@@ -1,0 +1,40 @@
+{:paths ["src"]
+ :mvn/repos {"clojars" {:url "https://repo.clojars.org/"}}
+ :deps {org.clojure/clojure {:mvn/version "1.11.3"}
+        com.oracle.oci.sdk/oci-java-sdk-common {:mvn/version "3.91.0"}
+        org.slf4j/slf4j-simple {:mvn/version "1.7.33"}
+        cheshire/cheshire {:mvn/version "5.13.0"}
+        clj-http/clj-http {:mvn/version "3.13.0"}}
+ :aliases
+ {:oci/http-jersey
+  {:extra-deps {com.oracle.oci.sdk/oci-java-sdk-common-httpclient-jersey {:mvn/version "3.91.0"}}}
+
+  :oci/identity
+  {:extra-deps {com.oracle.oci.sdk/oci-java-sdk-identity {:mvn/version "3.91.0"}}}
+
+  :oci/core
+  {:extra-deps {com.oracle.oci.sdk/oci-java-sdk-core {:mvn/version "3.91.0"}}}
+
+  :oci/object-storage
+  {:extra-deps {com.oracle.oci.sdk/oci-java-sdk-objectstorage {:mvn/version "3.91.0"}}}
+
+  :oci/full
+  {:extra-deps {com.oracle.oci.sdk/oci-java-sdk-shaded-full {:mvn/version "3.91.0"}}}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps {com.oracle.oci.sdk/oci-java-sdk-common-httpclient-jersey {:mvn/version "3.91.0"}
+                com.oracle.oci.sdk/oci-java-sdk-identity {:mvn/version "3.91.0"}
+                com.oracle.oci.sdk/oci-java-sdk-core {:mvn/version "3.91.0"}}
+   :main-opts ["-m" "oci-sdk-clj.test-runner"]}
+
+  :inventory
+  {:main-opts ["scripts/oci_client_inventory.clj"]}
+
+  :fmt
+  {:extra-deps {cljfmt/cljfmt {:mvn/version "0.9.2"}}
+   :main-opts ["-m" "cljfmt.main"]}
+
+  :build
+  {:deps {org.clojure/tools.build {:mvn/version "0.9.2"}}
+   :ns-default build}}}

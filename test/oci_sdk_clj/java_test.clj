@@ -57,8 +57,7 @@
       (is (= "ok" (str client))))))
 
 (deftest client-inventory-test
-  (testing "the shaded OCI Java SDK exposes sync clients on the classpath"
+  (testing "selected OCI Java SDK modules expose sync clients on the classpath"
     (let [clients (set (oci-java/client-inventory))]
       (is (contains? clients "com.oracle.bmc.identity.IdentityClient"))
-      (is (contains? clients "com.oracle.bmc.core.ComputeClient"))
-      (is (>= (count clients) 100)))))
+      (is (contains? clients "com.oracle.bmc.core.ComputeClient")))))
